@@ -1,0 +1,4 @@
+kafka-python
+nltk
+beautifulsoup4
+psycopg2-binary

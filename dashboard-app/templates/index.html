@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="refresh" content="10">
+    <title>Real-Time Sentiment Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; margin: 40px; background-color: #f4f4f9; color: #333; }
+        h1, h2 { text-align: center; color: #444; }
+        .chart-container { width: 60%; margin: auto; }
+        table { width: 80%; margin: 40px auto; border-collapse: collapse; box-shadow: 0 2px 15px rgba(0,0,0,0.1); }
+        th, td { padding: 12px; border: 1px solid #ddd; text-align: left; }
+        th { background-color: #007bff; color: white; }
+        tr:nth-child(even) { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+
+    <h1>Real-Time Social Media Sentiment</h1>
+
+    <div class="chart-container">
+        <canvas id="sentimentChart"></canvas>
+    </div>
+
+    <h2>Recent Posts</h2>
+    <table id="posts-table">
+        <thead>
+            <tr>
+                <th>Content Preview</th>
+                <th>Sentiment</th>
+                <th>Score</th>
+            </tr>
+        </thead>
+        <tbody>
+            </tbody>
+    </table>
+
+    <script>
+        // Function to fetch data and update the page
+        async function updateDashboard() {
+            try {
+                const response = await fetch('/api/data');
+                const data = await response.json();
+
+                // Update the chart
+                const ctx = document.getElementById('sentimentChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Positive', 'Negative', 'Neutral'],
+                        datasets: [{
+                            label: 'Sentiment Count',
+                            data: [data.sentiment_counts.Positive, data.sentiment_counts.Negative, data.sentiment_counts.Neutral],
+                            backgroundColor: [
+                                'rgba(75, 192, 192, 0.7)',
+                                'rgba(255, 99, 132, 0.7)',
+                                'rgba(201, 203, 207, 0.7)'
+                            ],
+                            borderColor: [
+                                'rgba(75, 192, 192, 1)',
+                                'rgba(255, 99, 132, 1)',
+                                'rgba(201, 203, 207, 1)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: true }
+                });
+
+                // Update the table with recent posts
+                const tableBody = document.querySelector("#posts-table tbody");
+                tableBody.innerHTML = ''; // Clear old data
+                data.recent_posts.forEach(post => {
+                    let row = tableBody.insertRow();
+                    let cell1 = row.insertCell(0);
+                    let cell2 = row.insertCell(1);
+                    let cell3 = row.insertCell(2);
+                    cell1.innerHTML = post.content;
+                    cell2.innerHTML = post.sentiment;
+                    cell3.innerHTML = post.compound_score.toFixed(4);
+                });
+
+            } catch (error) {
+                console.error('Error fetching dashboard data:', error);
+            }
+        }
+
+        // Initial call to load data when the page opens
+        window.onload = updateDashboard;
+    </script>
+
+</body>
+</html>
